@@ -18,7 +18,6 @@ from tensorrt_engine import onnx2tensorrt_engine
 
 parser = ArgsParser()
 parser.add_argument('--onnx_model_path', type=str, default='./model_data/v2x_yolov6s.onnx', help='onnx model path')
-parser.add_argument('--tensorrt_model_path', type=str, default='./model_data/v2x_yolov6s.trt', help='tensorrt model path')
 parser.add_argument('--input_shape', type=int, nargs='+',help='input shape')
 parser.add_argument('--model_type', type=str, default="yolov5", help='model type: [yolov6,ppclas, pulc]')
 parser.add_argument('--mode', type=str, default='test', help='tensorrt model mode: [fp32, fp16, int8]')
@@ -39,7 +38,7 @@ def onnx2tensorrt(opt):
     model_type = opt.model_type
     input_shape = opt.input_shape
     onnx_model_path = os.path.abspath(opt.onnx_model_path)
-    tensorrt_model_path = os.path.abspath("{}.{}".format(opt.tensorrt_model_path,mode))
+    tensorrt_model_path = onnx_model_path.replace(".onnx",".trt")
     calibrator_image_dir = os.path.abspath(opt.calibrator_image_dir)
     calibrator_table_path = os.path.abspath(opt.calibrator_table_path)
     data_type = opt.data_type
