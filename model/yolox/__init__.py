@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Time    : 2025/3/20 15:19
+# @Time    : 2025/5/23 17:32
 # @Author  : DaiPuWei
 # @Email   : puwei.dai@vitalchem.com
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .yolov5_trt_calibrator import yolov5_trt_calibrator
+from .yolox_trt_calibrator import yolox_trt_calibrator
