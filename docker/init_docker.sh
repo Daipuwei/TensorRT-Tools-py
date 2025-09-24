@@ -15,6 +15,14 @@ if [ $? != 0 ]; then
 fi
 eval set -- "$TEMP"
 
+# 设置所有参数的默认值
+PORT=""  # 端口必须指定，无默认值
+DOCKER_CONTAINER_NAME=""  # 容器名称必须指定，无默认值
+DOCKER_IMAGE_NAME=""  # 镜像名称必须指定，无默认值
+START_CPU_ID=-1  # 默认使用所有CPU核心
+END_CPU_ID=-1    # 默认使用所有CPU核心
+MOUNT_OPTIONS="/home:/home"  # 默认挂载/home目录
+
 # 解析参数
 while true ; do
     case "$1" in
@@ -66,7 +74,7 @@ init_docker_container() {
    delete_container "$docker_container_name"
 
    # 获取 CPU ID 字符串
-   echo "$start_cpu_id,$end_cpu_id"
+#   echo "$start_cpu_id,$end_cpu_id"
    if [[ (${start_cpu_id} -eq -1) || (${end_cpu_id} -eq -1) ]]; then
       start_cpu_id=0
       end_cpu_id=$(($(nproc)-1))
@@ -86,58 +94,52 @@ init_docker_container() {
         fi
     done
 
-    # 判断是否启用虚拟化
-    local enable_qemu=0
+    # 判断是否使用gpu
+    local use_gpu=0
     lower_docker_image_name=$(echo "$docker_image_name" | awk '{print tolower($0)}')
-    if [[ $lower_docker_image_name == *"rk3588"* ]]; then
-       enable_qemu=1
+    if [[ $lower_docker_image_name == *"onnx"*  || $lower_docker_image_name == *"tensorrt"*
+          || $lower_docker_image_name == *"cuda"* ]] ; then
+       use_gpu=1
     fi
 
-   # 根据标志位执行命令
-   if (( enable_qemu )); then
-       echo "启动虚拟化支持"
-
-       # 注册 QEMU 仿真器[3](@ref)
-       docker run --rm --privileged multiarch/qemu-user-static:latest --reset -p yes
-
-       # 动态资源分配（物理内存的50%）[2](@ref)
-       VM_MEMORY=$(($(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 / 2))
-       VM_CPU=$(( end_cpu_id - start_cpu_id + 1 ))
-
-       # 启动 KVM 虚拟机（带后台运行）[6](@ref)
-       docker run -d --rm --privileged \
-           --device=/dev/kvm \
-           -e VM_MEMORY=$VM_MEMORY \
-           multiarch/qemu-user-static \
-           qemu-system-aarch64 -enable-kvm -cpu host -smp $VM_CPU -m $VM_MEMORY
-       sleep 3  # 等待虚拟化初始化
-   fi
-
-
-   # 启动容器
-   xhost +
-   docker run -itd \
+    # 构建Docker命令
+    local docker_run_cmd="docker run -itd \
            --ipc=host \
            --restart=always \
            --privileged=true \
            --ulimit memlock=-1 \
            --ulimit stack=67108864 \
            --shm-size=32g  \
-           -p "$port:22" \
-	         --cpuset-cpus=$cpu_ids \
-	         --name $docker_container_name \
+           -p \"$port:22\" \
+           --cpuset-cpus=$cpu_ids \
+           --name $docker_container_name \
            -e LANG=zh_CN.UTF-8 \
-           -e TZ="Asia/Shanghai" \
+           -e TZ=\"Asia/Shanghai\" \
            -e DISPLAY=${DISPLAY} \
            -e GDK_SCALE \
            -e GDK_DPI_SCALE \
            -v /etc/localtime:/etc/localtime:ro \
            -v /tmp/.X11-unix:/tmp/.X11-unix \
            -v /dev/mem:/dev/mem \
-		       -v /etc/locale.conf:/etc/locale.conf \
-		       -v /home:/home \
-		       ${mount_options_str} \
-           $docker_image_name
+           -v /etc/locale.conf:/etc/locale.conf \
+           -v /home:/home \
+           ${mount_options_str}"
+
+    # 添加GPU支持
+    if [ $use_gpu -eq 1 ]; then
+       echo "启用GPU支持"
+       docker_run_cmd+=" --gpus all"
+       docker_run_cmd+=" -e NVIDIA_VISIBLE_DEVICES=all"
+       docker_run_cmd+=" -e NVIDIA_DRIVER_CAPABILITIES=all"
+    fi
+
+    # 添加镜像名称
+    docker_run_cmd+=" $docker_image_name"
+
+    # 启动docker容器
+    echo "执行命令: $docker_run_cmd"
+    xhost +
+    eval $docker_run_cmd
 
    # 暴露端口
    expose_container_port $docker_container_name $port

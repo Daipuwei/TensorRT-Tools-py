@@ -18,19 +18,21 @@ from ..base_calibrator import TensorRTCalibrator,CalibrationDataloader
 
 class YOLOXCalibrationDataloader(CalibrationDataloader):
 
-    def __init__(self,logger,input_shape,calibrator_image_dir,data_type='float32'):
+    def __init__(self,logger,input_shape,calibrator_image_dir,use_normalize=False,data_type='float32'):
         """
         这是YOLOX模型INT8量化校准数据集加载器的初始化函数
         Args:
             logger: 日志类实例
             input_shape: 输入形状
             calibrator_image_dir: 校准图片集文件夹路径
+            use_normalize: 预处理是否加入归一化，默认为False
             data_type: 数据类型,默认为'float32'
         """
         self.logger = logger
         super(YOLOXCalibrationDataloader,self).__init__(input_shape=input_shape,
-                                                         calibrator_image_dir=calibrator_image_dir,
-                                                         data_type=data_type)
+                                                        calibrator_image_dir=calibrator_image_dir,
+                                                        use_normalize=use_normalize,
+                                                        data_type=data_type)
     def preprocess_image(self, image):
         """
         这是YOLOX对单张图像进行预处理的函数
@@ -66,17 +68,18 @@ class YOLOXCalibrationDataloader(CalibrationDataloader):
             return self.calibration_data
 
 @TENSORRT_CALIBRATION_DATALOADER_REGISTRY.register()
-def yolox_trt_calibrator(logger,input_shape,calibrator_image_dir,data_type,calibrator_table_path):
+def yolox_trt_calibrator(logger,input_shape,calibrator_image_dir,calibrator_table_path,use_normalize,data_type):
     """
     这是YOLOX的TensorRT推理引擎INT8校准集加载器的注册函数
     Args:
         logger: 日志类实例
         input_shape: 模型输入尺寸
         calibrator_image_dir: 校准集文件夹路径
-        data_type: 数据类型
         calibrator_table_path: 校准表路径
+        use_normalize: 是否使用归一化预处理
+        data_type: 数据类型
     Returns:
     """
-    calibration_dataloader = YOLOXCalibrationDataloader(logger,input_shape,calibrator_image_dir,data_type)
+    calibration_dataloader = YOLOXCalibrationDataloader(logger,input_shape,calibrator_image_dir,use_normalize,data_type)
     trt_calibrator = TensorRTCalibrator(calibration_dataloader,calibrator_table_path)
     return trt_calibrator

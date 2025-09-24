@@ -72,12 +72,13 @@ class TensorRTCalibrator(trt.IInt8EntropyCalibrator2):
 
 class CalibrationDataloader(object):
 
-    def __init__(self, input_shape, calibrator_image_dir, data_type='float32'):
+    def __init__(self, input_shape, calibrator_image_dir, use_normalize=False,data_type='float32'):
         """
         这是校准数据集加载器的初始化函数
         Args:
             input_shape: 输入尺度
             calibrator_image_dir: 校准图像文件夹路径
+            use_normalize: 预处理是否加入归一化，默认为False
             data_type: 数据类型，默认为"float32"
         """
         # 初始化相关变量
@@ -90,6 +91,7 @@ class CalibrationDataloader(object):
             self.batch_size, self.channel, self.height, self.width = input_shape
             self.input_shape = (self.batch_size, self.channel, self.height, self.width)
         self.calibrator_image_dir = os.path.abspath(calibrator_image_dir)
+        self.use_normalize = use_normalize
 
         # 初始化校准图片路径
         self.image_paths = []

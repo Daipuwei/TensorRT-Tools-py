@@ -16,6 +16,8 @@ from .yolov8 import yolov8_trt_calibrator
 from .yolov9 import yolov9_trt_calibrator
 from .yolov10 import yolov10_trt_calibrator
 from .yolov11 import yolov11_trt_calibrator
+from .yolov12 import yolov12_trt_calibrator
+from .yolov13 import yolov13_trt_calibrator
 from .yolox import yolox_trt_calibrator
 from .ppyoloe import ppyoloe_trt_calibrator
 from .yolos import yolos_trt_calibrator

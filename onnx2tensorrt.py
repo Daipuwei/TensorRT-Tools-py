@@ -23,6 +23,7 @@ parser.add_argument('--model_type', type=str, default="yolov5", help='model type
 parser.add_argument('--mode', type=str, default='test', help='tensorrt model mode: [fp32, fp16, int8]')
 parser.add_argument('--calibrator_image_dir', type=str, default='', help='calibrator imageset directory')
 parser.add_argument('--calibrator_table_path', type=str, default='', help='calibrator table path')
+parser.add_argument('--use_normalize', type=bool, default=False, help='use normalize')
 parser.add_argument('--data_type', type=str, default='float32', help='data type')
 opt = parser.parse_args()
 
@@ -38,14 +39,15 @@ def onnx2tensorrt(opt):
     model_type = opt.model_type
     input_shape = opt.input_shape
     onnx_model_path = os.path.abspath(opt.onnx_model_path)
-    tensorrt_model_path = onnx_model_path.replace(".onnx",".trt")
+    tensorrt_model_path = onnx_model_path.replace(".onnx",".trt.{0}".format(mode))
     calibrator_image_dir = os.path.abspath(opt.calibrator_image_dir)
-    calibrator_table_path = os.path.abspath(opt.calibrator_table_path)
+    calibrator_table_path = onnx_model_path.replace(".onnx",".int8.table")
+    use_normalize = opt.use_normalize
     data_type = opt.data_type
     logger = logger_config("./log.log")
     if mode == 'int8':
         trt_calibrator = build_calibration_dataloader(logger,input_shape,calibrator_image_dir,
-                                                      data_type,calibrator_table_path,model_type)
+                                                      calibrator_table_path,use_normalize,data_type,model_type)
     else:
         trt_calibrator = None
 
