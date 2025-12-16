@@ -17,7 +17,7 @@ from ..base_calibrator import TensorRTCalibrator,CalibrationDataloader
 
 class YOLOSCalibrationDataloader(CalibrationDataloader):
 
-    def __init__(self,logger,input_shape,calibrator_image_dir,data_type='float32'):
+    def __init__(self,logger,input_shape,calibrator_image_dir,use_normalize=False,data_type='float32'):
         """
         这是YOLOS模型INT8量化校准数据集加载器的初始化函数
         Args:
@@ -31,6 +31,7 @@ class YOLOSCalibrationDataloader(CalibrationDataloader):
         self.std = np.array([0.229, 0.224, 0.225])
         super(YOLOSCalibrationDataloader,self).__init__(input_shape=input_shape,
                                                         calibrator_image_dir=calibrator_image_dir,
+                                                        use_normalize=use_normalize,
                                                         data_type=data_type)
     def preprocess_image(self, image):
         """
@@ -45,9 +46,10 @@ class YOLOSCalibrationDataloader(CalibrationDataloader):
         # BGR转RGB
         image_tensor = cv2.cvtColor(image_tensor, cv2.COLOR_BGR2RGB)
         # 归一化
-        image_tensor = image_tensor / 255.0
-        image_tensor -= self.mean
-        image_tensor /= self.std
+        if self.use_normalize:
+            image_tensor = image_tensor / 255.0
+            image_tensor -= self.mean
+            image_tensor /= self.std
         # hwc->chw
         if self.is_nchw:
             image_tensor = np.transpose(image_tensor,(2, 0, 1))

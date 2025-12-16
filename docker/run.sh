@@ -1,7 +1,8 @@
-# x86_deeplearning
+# x86_onnxruntime
 bash init_docker.sh --port 44874 \
                     --docker_container_name x86_deeplearning_runtime \
-                    --docker_image_name daipuwei/x86_deeplearning_runtime:cuda11.8_ubuntu20.04 \
+                    --docker_image_name vot_x86_deeplearning_runtime:cuda11.8_ubuntu20.04 \
                     --start_cpu_id 0 \
                     --end_cpu_id 19 \
-                    --mount "/store1/:/store1,/store2:/store2"
+                    --use_gpu 1 \
+                    --mount "/home:/home"

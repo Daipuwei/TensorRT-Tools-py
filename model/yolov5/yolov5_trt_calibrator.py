@@ -88,3 +88,20 @@ def yolov5_trt_calibrator(logger,input_shape,calibrator_image_dir,calibrator_tab
     calibration_dataloader = YOLOv5CalibrationDataloader(logger,input_shape,calibrator_image_dir,use_normalize,data_type)
     trt_calibrator = TensorRTCalibrator(calibration_dataloader,calibrator_table_path)
     return trt_calibrator
+
+@TENSORRT_CALIBRATION_DATALOADER_REGISTRY.register()
+def yolov7_trt_calibrator(logger,input_shape,calibrator_image_dir,calibrator_table_path,use_normalize,data_type):
+    """
+    这是YOLOX的TensorRT推理引擎INT8校准集加载器的注册函数
+    Args:
+        logger: 日志类实例
+        input_shape: 模型输入尺寸
+        calibrator_image_dir: 校准集文件夹路径
+        calibrator_table_path: 校准表路径
+        use_normalize: 是否使用归一化预处理
+        data_type: 数据类型
+    Returns:
+    """
+    calibration_dataloader = YOLOv5CalibrationDataloader(logger,input_shape,calibrator_image_dir,use_normalize,data_type)
+    trt_calibrator = TensorRTCalibrator(calibration_dataloader,calibrator_table_path)
+    return trt_calibrator

@@ -6,3 +6,4 @@
 # @Software: PyCharm
 
 from .yolov5_trt_calibrator import yolov5_trt_calibrator
+from .yolov5_trt_calibrator import yolov7_trt_calibrator

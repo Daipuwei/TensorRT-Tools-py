@@ -5,4 +5,4 @@
 # @File    : __init__.py
 # @Software: PyCharm
 
-from .model_convert import *
+from .model_convert import onnx2tensorrt_engine
